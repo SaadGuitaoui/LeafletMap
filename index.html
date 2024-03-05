@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaflet Map</title>
+    <!-- CSS leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            width: 100%;
+            height: 100vh;
+        }
+         /* Add transition for Leaflet popups */
+         .leaflet-popup {
+            opacity: 0;
+            transition: opacity 3s ease-in-out;
+            box-shadow: 0 2px 8px rgb(0, 0, 0);
+            border-radius: 100%;
+        }
+
+        .leaflet-popup.leaflet-popup-open {
+            opacity: 10;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="map"></div>
+
+    <!-- JS leaflet -->
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="./geo/points.js"></script>
+    <script>
+        var map = L.map('map').setView([31.794525, -7.0849336], 7);
+
+        var osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        });
+        osm.addTo(map);
+
+        // google map leaflet
+
+        googleStreets = L.tileLayer('http://{s}.google.com/vt?lyrs=m&x={x}&y={y}&z={z}', {
+            maxZoom: 20,
+            subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+        });
+        googleStreets.addTo(map);
+
+        // google map terrain 
+
+        googleTerrain = L.tileLayer('http://{s}.google.com/vt?lyrs=p&x={x}&y={y}&z={z}', {
+            maxZoom: 20,
+            subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+        });
+        googleTerrain.addTo(map);
+
+        // Marker
+        var singleMarker = L.marker([31.794525, -7.0849336], { draggable: true });
+        var secondMarker = L.marker([31.894525, -6.0849336], { draggable: true });
+
+        var baseMaps = {
+            "OSM": osm,
+            "Google Street": googleStreets,
+            "Google Terrain": googleTerrain
+        };
+
+       var overlayMaps = {
+            "First Marker": singleMarker,
+            "Second Marker": secondMarker
+        };
+
+        L.control.layers(baseMaps, overlayMaps, { collapsed: false }).addTo(map);
+
+        var myIcon = L.icon({
+            iconUrl: 'img/emsi.png',
+            iconSize: [40, 40],
+        });
+
+        // GeoJSON with Custom Icon
+
+       L.geoJSON(pointsJson, {
+            pointToLayer: function (feature, latlng) {
+                return L.marker(latlng, { icon: myIcon });
+            },
+            onEachFeature: function (feature, layer) {
+                layer.bindPopup(`<b>Site: </b>`+feature.properties.Name);
+            }
+        }).addTo(map);
+
+
+        navigator.geolocation.watchPosition(success, error);
+
+        let marker,circle;
+        
+
+
+        function success(pos) {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            const accuracy = pos.coords.accuracy;
+            
+            if (marker){
+                map.removeLayer(marker);
+                map.removeLayer(circle);
+            }
+
+            // if(!zoomed){
+            //    zoomed = map.fitBounds(circle.getBounds());
+            // }
+
+            marker = L.marker([lat, lng]).addTo(map);
+            circle = L.circle([lat, lng ], { radius : 200}).addTo(map);
+
+            
+        }
+
+function error(err){
+    if (error === 1 ) {
+        alert("please allow ur geolocation");
+    }
+}   
+
+    </script>
+</body>
+</html>
