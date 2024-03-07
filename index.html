@@ -1,83 +1,192 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leaflet Map</title>
     <!-- CSS leaflet -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+    <link rel="stylesheet" href="leaflet.mouseCoordinate-master/dist/leaflet.mousecoordinate.css" />
+    <script src="leaflet.mouseCoordinate-master/dist/leaflet.mousecoordinate.js"></script>
+
     <style>
         body {
             margin: 0;
             padding: 0;
+            height: 100vh;
         }
 
         #map {
             width: 100%;
             height: 100vh;
         }
-         /* Add transition for Leaflet popups */
-         .leaflet-popup {
-            opacity: 0;
-            transition: opacity 3s ease-in-out;
-            box-shadow: 0 2px 8px rgb(0, 0, 0);
-            border-radius: 100%;
+
+        ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            overflow: auto;
         }
 
-        .leaflet-popup.leaflet-popup-open {
-            opacity: 10;
+        li {
+            float: left;
+            margin-right: 50px;
+            text-align: center;
         }
 
+        .layer-label {
+            font-size: 12px;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        #layerToggle {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            cursor: pointer;
+            z-index: 1000;
+            background-color: #fff;
+            padding: 8px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            background: rgba(0, 0, 0, 0.17);
+            border-radius: 16px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(6.2px);
+            -webkit-backdrop-filter: blur(6.2px);
+            border: 1px solid rgba(0, 0, 0, 0.31);
+        }
+
+        #layerPopup {
+            display: none;
+            position: absolute;
+            bottom: 80px;
+            left: 20px;
+            background-color: #fff;
+            padding: 8px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        #layerPopup img {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 5px;
+            border-radius: 20%;
+        }
+
+        .coordinates-box {
+            background: rgba(255, 255, 255, 0.31);
+            border-radius: 16px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(2.5px);
+            -webkit-backdrop-filter: blur(2.5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 5px;
+            white-space: nowrap; /* Prevent text wrapping */
+            border-radius: 8px;
+            box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 2000;
+        }
+
+        .coordinatess-box {
+            background: rgba(255, 255, 255, 0.31);
+            border-radius: 16px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(2.5px);
+            -webkit-backdrop-filter: blur(2.5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 5px;
+            white-space: nowrap; /* Prevent text wrapping */
+            border-radius: 8px;
+            box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+        }
     </style>
 </head>
+
 <body>
 
     <div id="map"></div>
+    <div id="layerToggle" onclick="toggleLayerPopup()">
+        <img src="./img/layers.png" alt="Layer Toggle" width="32" height="32">
+    </div>
+    <div id="layerPopup">
+        <ul>
+            <li onclick="changeBaseLayer('osm')">
+                <img src="./img/OSM.png" alt="OSM" width="100" height="100">
+                <span class="layer-label"><br>OSM</span>
+            </li>
+            <li onclick="changeBaseLayer('googleStreets')">
+                <img src="./img/streets.png" alt="Google Streets" width="100" height="100">
+                <span class="layer-label"><br>Google Streets</span>
+            </li>
+            <li onclick="changeBaseLayer('googleTerrain')">
+                <img src="./img/terrain.png" alt="Google Terrain" width="100" height="100">
+                <span class="layer-label"><br>Google Terrain</span>
+            </li>
+            <li onclick="changeBaseLayer('googleSat')">
+                <img src="./img/sattelite.png" alt="Google Satellite" width="100" height="100">
+                <span class="layer-label"><br>Google Satellite</span>
+            </li>
+        </ul>
+    </div>
+
+    <div id="coordinateInput" class="coordinatess-box">
+        <label for="latitude"><b>Latitude:</b></label>
+        <input type="text" id="latitude" placeholder="Enter latitude">
+        <label for="longitude"><b>Longitude:</b></label>
+        <input type="text" id="longitude" placeholder="Enter longitude">
+        <button onclick="addMarker()">Add Marker</button>
+        <button onclick="clearMarker()">Clear Marker</button>
+    </div>
 
     <!-- JS leaflet -->
-
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="./geo/points.js"></script>
+
     <script>
         var map = L.map('map').setView([31.794525, -7.0849336], 7);
 
         var osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         });
-        osm.addTo(map);
 
         // google map leaflet
-
-        googleStreets = L.tileLayer('http://{s}.google.com/vt?lyrs=m&x={x}&y={y}&z={z}', {
+        var googleStreets = L.tileLayer('http://{s}.google.com/vt?lyrs=m&x={x}&y={y}&z={z}', {
             maxZoom: 20,
             subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
         });
-        googleStreets.addTo(map);
 
         // google map terrain 
-
-        googleTerrain = L.tileLayer('http://{s}.google.com/vt?lyrs=p&x={x}&y={y}&z={z}', {
+        var googleTerrain = L.tileLayer('http://{s}.google.com/vt?lyrs=p&x={x}&y={y}&z={z}', {
             maxZoom: 20,
             subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
         });
-        googleTerrain.addTo(map);
 
-        // Marker
-        var singleMarker = L.marker([31.794525, -7.0849336], { draggable: true });
-        var secondMarker = L.marker([31.894525, -6.0849336], { draggable: true });
+        // google map satellite 
+        var googleSat = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+            maxZoom: 20,
+            subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+        });
 
-        var baseMaps = {
-            "OSM": osm,
-            "Google Street": googleStreets,
-            "Google Terrain": googleTerrain
-        };
+        // Create a group for Google layers
+        var googleLayers = L.layerGroup([googleStreets, googleTerrain, googleSat]);
 
-       var overlayMaps = {
-            "First Marker": singleMarker,
-            "Second Marker": secondMarker
-        };
-
-        L.control.layers(baseMaps, overlayMaps, { collapsed: false }).addTo(map);
+        // Add default layer
+        osm.addTo(map);
 
         var myIcon = L.icon({
             iconUrl: 'img/emsi.png',
@@ -85,49 +194,111 @@
         });
 
         // GeoJSON with Custom Icon
-
-       L.geoJSON(pointsJson, {
+        L.geoJSON(pointsJson, {
             pointToLayer: function (feature, latlng) {
                 return L.marker(latlng, { icon: myIcon });
             },
             onEachFeature: function (feature, layer) {
-                layer.bindPopup(`<b>Site: </b>`+feature.properties.Name);
+                layer.bindPopup(`<b>Site: </b>` + feature.properties.Name);
             }
         }).addTo(map);
 
-
         navigator.geolocation.watchPosition(success, error);
 
-        let marker,circle;
-        
-
+        let marker, circle;
 
         function success(pos) {
             const lat = pos.coords.latitude;
             const lng = pos.coords.longitude;
-            const accuracy = pos.coords.accuracy;
-            
-            if (marker){
+
+            if (marker) {
                 map.removeLayer(marker);
                 map.removeLayer(circle);
             }
 
-            // if(!zoomed){
-            //    zoomed = map.fitBounds(circle.getBounds());
-            // }
-
             marker = L.marker([lat, lng]).addTo(map);
-            circle = L.circle([lat, lng ], { radius : 200}).addTo(map);
-
-            
+            circle = L.circle([lat, lng], { radius: 600 }).addTo(map);
         }
 
-function error(err){
-    if (error === 1 ) {
-        alert("please allow ur geolocation");
-    }
-}   
+        function error(err) {
+            if (error === 1) {
+                alert("Please allow your geolocation");
+            }
+        }
+
+        function toggleLayerPopup() {
+            var popup = document.getElementById('layerPopup');
+            popup.style.display = (popup.style.display === 'block') ? 'none' : 'block';
+        }
+
+        function changeBaseLayer(layer) {
+            switch (layer) {
+                case 'osm':
+                    map.addLayer(osm);
+                    map.removeLayer(googleLayers);
+                    map.removeLayer(googleSat);
+                    map.removeLayer(googleTerrain);
+                    break;
+                case 'googleStreets':
+                    map.addLayer(googleLayers);
+                    map.removeLayer(osm);
+                    map.removeLayer(googleTerrain);
+                    map.removeLayer(googleSat);
+                    break;
+                case 'googleTerrain':
+                    map.addLayer(googleTerrain);
+                    map.removeLayer(osm);
+                    break;
+                case 'googleSat':
+                    map.addLayer(googleSat);
+                    map.removeLayer(osm);
+                    map.removeLayer(googleTerrain);
+                    break;
+                default:
+                    break;
+            }
+
+            // Close the layerPopup after selecting a layer
+            
+            document.getElementById('layerPopup').style.display = 'none';
+        }
+
+        // coordinates
+        var mouseCoordinates = L.control();
+
+        mouseCoordinates.onAdd = function (map) {
+            var div = L.DomUtil.create('div', 'coordinates-box');
+            div.innerHTML = '<b><u>Mouse Coordinates</u>:</b> <i><span id="coordinates"</i>></span>';
+            return div;
+        };
+
+        mouseCoordinates.addTo(map);
+
+        map.on('mousemove', function (e) {
+            document.getElementById('coordinates').innerHTML = e.latlng.toString();
+        });
+
+        let marker2;
+
+        function addMarker() {
+            const latitude = parseFloat(document.getElementById('latitude').value);
+            const longitude = parseFloat(document.getElementById('longitude').value);
+
+            if (!isNaN(latitude) && !isNaN(longitude)) {
+               marker2 = L.marker([latitude, longitude]).addTo(map);
+            } else {
+                alert('Please enter valid coordinates.');
+            }
+        }
+
+        function clearMarker() {
+            if (marker) {
+                map.removeLayer(marker2);
+            }
+        }
+
 
     </script>
 </body>
+
 </html>
