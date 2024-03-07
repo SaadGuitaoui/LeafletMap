@@ -280,7 +280,17 @@
             }
         }
 
-        L.control.locate().addTo(map);
+        L.control.locate({
+    follow: true, 
+    setView: 'always', 
+    enableHighAccuracy: true, 
+    cacheLocation: true, 
+    flyTo: true, 
+    locateOptions: {
+        maxZoom: 16 
+    }
+}).addTo(map);
+
 
     </script>
 </body>
