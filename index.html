@@ -188,11 +188,23 @@
             }
         }).addTo(map);
 
-        // navigator.geolocation.watchPosition(success, error, {
-        //     enableHighAccuracy: true,
-        //     timeout: 1000,
-        //     maximumAge: 0
-        // });
+        // Prompt for geolocation permission on page load
+        function promptForGeolocationPermission() {
+            if ('geolocation' in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+
+                    },
+                    function(error) {
+                        // Permission denied or error occurred
+                        alert("Please allow access to your location for the best experience.");
+                    }
+                );
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+        promptForGeolocationPermission();
 
         let marker, circle;
 
