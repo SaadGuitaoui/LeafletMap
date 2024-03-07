@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +9,10 @@
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 
     <link rel="stylesheet" href="leaflet.mouseCoordinate-master/dist/leaflet.mousecoordinate.css" />
-    <script src="leaflet.mouseCoordinate-master/dist/leaflet.mousecoordinate.js"></script>
+
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.css" />
+
 
     <style>
         body {
@@ -115,9 +117,7 @@
         }
     </style>
 </head>
-
 <body>
-
     <div id="map"></div>
     <div id="layerToggle" onclick="toggleLayerPopup()">
         <img src="./img/layers.png" alt="Layer Toggle" width="32" height="32">
@@ -142,7 +142,6 @@
             </li>
         </ul>
     </div>
-
     <div id="coordinateInput" class="coordinatess-box">
         <label for="latitude"><b>Latitude:</b></label>
         <input type="text" id="latitude" placeholder="Enter latitude">
@@ -151,49 +150,35 @@
         <button onclick="addMarker()">Add Marker</button>
         <button onclick="clearMarker()">Clear Marker</button>
     </div>
-
     <!-- JS leaflet -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="./geo/points.js"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.js"></script>
+<script src="leaflet.mouseCoordinate-master/dist/leaflet.mousecoordinate.js"></script>
     <script>
         var map = L.map('map').setView([31.794525, -7.0849336], 7);
-
         var osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         });
-
-        // google map leaflet
         var googleStreets = L.tileLayer('http://{s}.google.com/vt?lyrs=m&x={x}&y={y}&z={z}', {
             maxZoom: 20,
             subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
         });
-
-        // google map terrain 
         var googleTerrain = L.tileLayer('http://{s}.google.com/vt?lyrs=p&x={x}&y={y}&z={z}', {
             maxZoom: 20,
             subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
         });
-
-        // google map satellite 
         var googleSat = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
             maxZoom: 20,
             subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
         });
-
-        // Create a group for Google layers
         var googleLayers = L.layerGroup([googleStreets, googleTerrain, googleSat]);
-
-        // Add default layer
         osm.addTo(map);
-
         var myIcon = L.icon({
             iconUrl: 'img/emsi.png',
             iconSize: [40, 40],
         });
-
-        // GeoJSON with Custom Icon
         L.geoJSON(pointsJson, {
             pointToLayer: function (feature, latlng) {
                 return L.marker(latlng, { icon: myIcon });
@@ -203,7 +188,11 @@
             }
         }).addTo(map);
 
-        navigator.geolocation.watchPosition(success, error);
+        // navigator.geolocation.watchPosition(success, error, {
+        //     enableHighAccuracy: true,
+        //     timeout: 1000,
+        //     maximumAge: 0
+        // });
 
         let marker, circle;
 
@@ -217,12 +206,14 @@
             }
 
             marker = L.marker([lat, lng]).addTo(map);
-            circle = L.circle([lat, lng], { radius: 600 }).addTo(map);
+            circle = L.circle([lat, lng], { radius: pos.coords.accuracy }).addTo(map);
         }
 
         function error(err) {
             if (error === 1) {
                 alert("Please allow your geolocation");
+            } else {
+                alert("Error accessing geolocation: " + err.message);
             }
         }
 
@@ -257,29 +248,22 @@
                 default:
                     break;
             }
-
             // Close the layerPopup after selecting a layer
-            
             document.getElementById('layerPopup').style.display = 'none';
         }
 
         // coordinates
         var mouseCoordinates = L.control();
-
         mouseCoordinates.onAdd = function (map) {
             var div = L.DomUtil.create('div', 'coordinates-box');
             div.innerHTML = '<b><u>Mouse Coordinates</u>:</b> <i><span id="coordinates"</i>></span>';
             return div;
         };
-
         mouseCoordinates.addTo(map);
-
         map.on('mousemove', function (e) {
             document.getElementById('coordinates').innerHTML = e.latlng.toString();
         });
-
         let marker2;
-
         function addMarker() {
             const latitude = parseFloat(document.getElementById('latitude').value);
             const longitude = parseFloat(document.getElementById('longitude').value);
@@ -290,15 +274,17 @@
                 alert('Please enter valid coordinates.');
             }
         }
-
         function clearMarker() {
             if (marker) {
                 map.removeLayer(marker2);
             }
         }
 
+        L.control.locate().addTo(map);
 
     </script>
 </body>
 
+
+<script src="leaflet.mouseCoordinate-master/dist/leaflet.mousecoordinate.js"></script>
 </html>
